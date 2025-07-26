@@ -1,0 +1,32 @@
+{
+    "default_settings": {
+        "format": "mp4",
+        "quality": "best",
+        "download_path": "~/Downloads",
+        "max_downloads": 5,
+        "timeout": 30,
+        "retries": 3
+    },
+    "gui_settings": {
+        "window_size": "800x600",
+        "theme": "default",
+        "language": "tr",
+        "auto_clear_logs": false,
+        "show_thumbnails": true
+    },
+    "download_settings": {
+        "mp3_quality": "192",
+        "mp4_quality_options": ["best", "worst", "720p", "480p", "360p"],
+        "filename_template": "%(title)s.%(ext)s",
+        "overwrite_existing": false,
+        "create_playlist_folders": true
+    },
+    "advanced_settings": {
+        "use_proxy": false,
+        "proxy_url": "",
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "cookies_file": "",
+        "extract_audio": true,
+        "embed_metadata": true
+    }
+} 
