@@ -15,6 +15,7 @@ import json
 import tempfile
 from werkzeug.utils import secure_filename
 import uuid
+import random
 
 app = Flask(__name__)
 CORS(app)  # Cross-origin requests için
@@ -180,6 +181,23 @@ HTML_TEMPLATE = """
 </html>
 """
 
+
+def download_with_retry(video_url, ydl_opts, max_retries=3):
+    """Download with retry mechanism"""
+    for attempt in range(max_retries):
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([video_url])
+            return True
+        except Exception as e:
+            print(f"Attempt {attempt + 1} failed: {str(e)}")
+            if attempt < max_retries - 1:
+                time.sleep(random.uniform(2, 5))  # Random delay
+                continue
+            else:
+                raise e
+
+
 def is_youtube_url(text):
     """Check if text is a YouTube URL"""
     import re
@@ -197,7 +215,10 @@ def search_youtube(query, max_results=10):
             'quiet': True,
             'no_warnings': True,
             'extract_flat': True,
-            'default_search': f'ytsearch{max_results}'
+            'default_search': f'ytsearch{max_results}',
+            # Bot korumasını aşmak için
+            'cookiefile': 'cookies.txt',  # YouTube cookies dosyası
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -216,7 +237,10 @@ def get_video_info(video_url):
         ydl_opts = {
             'quiet': True,
             'no_warnings': True,
-            'listformats': True
+            'listformats': True,
+            # Bot korumasını aşmak için
+            'cookiefile': 'cookies.txt',  # YouTube cookies dosyası
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -443,6 +467,9 @@ def download_video_api(video_url, format_type, quality, output_path, download_id
         ydl_opts = {
             'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
             'progress_hooks': [lambda d: progress_hook(d, download_id)],
+            # Bot korumasını aşmak için
+            'cookiefile': 'cookies.txt',  # YouTube cookies dosyası
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
         
         if format_type == "mp3" or format_type == "audio":
@@ -501,8 +528,7 @@ def download_video_api(video_url, format_type, quality, output_path, download_id
         downloads[download_id]['message'] = f"İndirme başlatılıyor... Format: {format_display}"
         downloads[download_id]['ffmpeg_available'] = ffmpeg_available
         
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([video_url])
+        download_with_retry(video_url, ydl_opts)
         
         # Get file info after download
         try:
